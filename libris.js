@@ -39,6 +39,8 @@ const API_URL = process.env.API_URL;
         
     })
 
+    //_findhold?id=http://libris.kb.se/bib/6747122&library=https://libris.kb.se/library/T
+
     const updateHolding = (id, etag, token, json_payload) => axios({
         method:"PUT",
         url : API_URL + id,
@@ -53,8 +55,20 @@ const API_URL = process.env.API_URL;
         
     })
 
+    const findHoldinguri = (id) => axios({
+        method:"GET",
+        url : API_URL + '_findhold?id=http://libris.kb.se/bib/' + id + '&library=https://libris.kb.se/library/T',
+        headers: {
+            "content-type":"application/json"
+        },
+        
+        data: ''
+    })
+
     exports.getToken = getToken;
 
     exports.getEtag = getEtag;
 
     exports.updateHolding = updateHolding;
+
+    exports.findHoldinguri = findHoldinguri;

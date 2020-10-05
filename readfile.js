@@ -1,24 +1,27 @@
 const fs = require('fs'); 
 const csv = require('csv-parser');
-const results = [];
+let results = [];
 
 const getLibrisId = (inputFilePath) => {
-    fs.createReadStream(inputFilePath)
-        .pipe(csv({ separator: ';' }))
-        .on('data', function(data){
-            try {
-                //perform the operation
-                results.push(data);
-                //console.log(data.LibrisNr)
-            }
-            catch(err) {
-                //error handler
-            }
-        })
-        .on('end',function(){
-            //console.log(results);
-        }); 
-        return results;
+    return new Promise((resolve, reject) => {
+        fs.createReadStream(inputFilePath)
+            .pipe(csv({ separator: ';' }))
+            .on('data', function(data){
+                try {
+                    //perform the operation
+                    results.push(data);
+                    //console.log(results)
+                }
+                catch(err) {
+                    //error handler
+                }
+            })
+            .on('end',function(){
+                //console.log(results);
+                resolve(results);
+            }); 
+            return results;
+        });
     }
 
 exports.getLibrisId = getLibrisId;
