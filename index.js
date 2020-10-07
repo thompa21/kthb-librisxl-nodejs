@@ -14,27 +14,59 @@ const asyncApiCall = async () => {
     const response = await libris.getToken()
     access_token = response.data.access_token
     console.log(response.data.access_token)
-    
-    const response2 = await libris.getEtag(id)
-    etag = response2.headers.etag
-    console.log(response2.headers.etag)
-    json_payload = JSON.stringify(response2.data)
-    console.log(response2.data)
-    const response3 = await libris.updateHolding(id, etag, access_token, json_payload)
-    console.log(response3.data)
 
-    const librisids = await readcsv.getLibrisId("./data/LibrisID.csv");
+    const librisids = await readcsv.getLibrisId("./data/librisid.csv");
+    let response4;
 
-    librisids.forEach( async element => {
-        if(element.Libris_ID.indexOf('(LIBRIS)') != -1) {
-            console.log('onr')
-            console.log(element.Libris_ID)
-        } else {
-            const response4 = await libris.findHoldinguri(element.Libris_ID)
-            console.log(response4.data)
+    const getLibrisUri = async _ => {
+        let currentid;
+        console.log('Script started!')
+        let max = 6;
+        for (let index = 0; index < librisids.length; index++) {
+            if (index >= max) {
+                break;
+            }
+            librisidarr = librisids[index].librisid.split(';')
+            for (let k = 0; k < librisidarr.length; k++) {
+                if(librisidarr[k] != '') {
+                    if(librisidarr[k].indexOf('(LIBRIS)') !== -1 ) {
+                        //sök på librismärkt id i första hand
+                        currentid = librisidarr[k].substr(8, librisidarr[k].length)
+                        response4 = await libris.findHoldinguri(librisidarr[k].substr(8, librisidarr[k].length),'bibid')
+                        if(response4.data.totalItems > 0){
+                            break;
+                        }
+                    } else {
+                        currentid = librisidarr[k]
+                        response4 = await libris.findHoldinguri(librisidarr[k],'libris3')
+                    }
+                }
+            }
+            if(response4.data.totalItems > 0){
+                for (let j = 0; j < response4.data.items[0]['@reverse'].itemOf.length; j++) {
+                    if(response4.data.items[0]['@reverse'].itemOf[j].heldBy['@id'] == 'https://libris.kb.se/library/T'){
+                        
+                        console.log(response4.data.items[0]['@reverse'].itemOf[j]['@id'])
+                        const response2 = await libris.getEtag(response4.data.items[0]['@reverse'].itemOf[j]['@id'])
+                        etag = response2.headers.etag
+                        console.log(response2.headers.etag)
+                        json_payload = JSON.stringify(response2.data)
+                        console.log(response2.data)
+                        const response3 = await libris.updateHolding(response4.data.items[0]['@reverse'].itemOf[j]['@id'], etag, access_token, json_payload)
+                        console.log(response3.data)
+                        const response5 = await libris.deleteHolding(response4.data.items[0]['@reverse'].itemOf[j]['@id'], etag, access_token)
+                        console.log(response5.data)
+                        
+                    }
+                }
+            } else {
+                console.log('No holding found!!! id:' + currentid)
+            }
         }
-        //console.log(element.Libris_ID);
-    });
+        console.log('Script finished!')
+    }
+    
+    getLibrisUri();
     
 }
 asyncApiCall()

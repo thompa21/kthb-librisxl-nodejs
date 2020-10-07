@@ -39,8 +39,6 @@ const API_URL = process.env.API_URL;
         
     })
 
-    //_findhold?id=http://libris.kb.se/bib/6747122&library=https://libris.kb.se/library/T
-
     const updateHolding = (id, etag, token, json_payload) => axios({
         method:"PUT",
         url : API_URL + id,
@@ -55,20 +53,42 @@ const API_URL = process.env.API_URL;
         
     })
 
-    const findHoldinguri = (id) => axios({
-        method:"GET",
-        url : API_URL + '_findhold?id=http://libris.kb.se/bib/' + id + '&library=https://libris.kb.se/library/T',
+    const deleteHolding = (id, etag, token) => axios({
+        method:"DELETE",
+        url : API_URL + id,
         headers: {
-            "content-type":"application/json"
-        },
-        
-        data: ''
+            "content-type":"application/ld+json",
+            "XL-Active-Sigel":"T",
+            "If-Match": etag,
+            "Authorization":"Bearer " + token
+        }
     })
+
+    const findHoldinguri = (id, type) => {
+            if (type == 'libris3') {
+                apiurl = API_URL + 'find.jsonld?meta.identifiedBy.@type=LibrisIIINumber&meta.identifiedBy.value=' + id + '&@reverse.itemOf.heldBy.@id=https://libris.kb.se/library/T'
+            }
+            if (type == 'bibid') {
+                apiurl = API_URL + 'find.jsonld?meta.controlNumber=' + id + '&@reverse.itemOf.heldBy.@id=https://libris.kb.se/library/T'
+            }
+            //console.log(apiurl)
+            return axios({
+                method:"GET",
+                url : apiurl,
+                headers: {
+                    "content-type":"application/json"
+                },
+                
+                data: ''
+            })
+    }
 
     exports.getToken = getToken;
 
     exports.getEtag = getEtag;
 
     exports.updateHolding = updateHolding;
+
+    exports.deleteHolding = deleteHolding;
 
     exports.findHoldinguri = findHoldinguri;

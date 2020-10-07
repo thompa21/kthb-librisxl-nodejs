@@ -5,19 +5,16 @@ let results = [];
 const getLibrisId = (inputFilePath) => {
     return new Promise((resolve, reject) => {
         fs.createReadStream(inputFilePath)
-            .pipe(csv({ separator: ';' }))
+            .pipe(csv({ separator: '' }))
             .on('data', function(data){
                 try {
-                    //perform the operation
                     results.push(data);
-                    //console.log(results)
                 }
                 catch(err) {
-                    //error handler
+                    //TODO felhantering
                 }
             })
             .on('end',function(){
-                //console.log(results);
                 resolve(results);
             }); 
             return results;
