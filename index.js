@@ -15,7 +15,8 @@ const asyncApiCall = async () => {
     access_token = response.data.access_token
     console.log(response.data.access_token)
 
-    const librisids = await readcsv.getLibrisId("./data/librisid.csv");
+    const librisids = await readcsv.getLibrisId("./data/librisid1.csv");
+    console.log(librisids)
     let response4;
 
     const getLibrisUri = async _ => {
@@ -26,7 +27,10 @@ const asyncApiCall = async () => {
             if (index >= max) {
                 break;
             }
+            console.log(librisids[index])
+            
             librisidarr = librisids[index].librisid.split(';')
+            
             for (let k = 0; k < librisidarr.length; k++) {
                 if(librisidarr[k] != '') {
                     if(librisidarr[k].indexOf('(LIBRIS)') !== -1 ) {
@@ -42,6 +46,8 @@ const asyncApiCall = async () => {
                     }
                 }
             }
+            
+           
             if(response4.data.totalItems > 0){
                 for (let j = 0; j < response4.data.items[0]['@reverse'].itemOf.length; j++) {
                     if(response4.data.items[0]['@reverse'].itemOf[j].heldBy['@id'] == 'https://libris.kb.se/library/T'){
@@ -52,8 +58,9 @@ const asyncApiCall = async () => {
                         console.log(response2.headers.etag)
                         json_payload = JSON.stringify(response2.data)
                         console.log(response2.data)
-                        const response3 = await libris.updateHolding(response4.data.items[0]['@reverse'].itemOf[j]['@id'], etag, access_token, json_payload)
-                        console.log(response3.data)
+                        
+                        //const response3 = await libris.updateHolding(response4.data.items[0]['@reverse'].itemOf[j]['@id'], etag, access_token, json_payload)
+                        //console.log(response3.data)
                         const response5 = await libris.deleteHolding(response4.data.items[0]['@reverse'].itemOf[j]['@id'], etag, access_token)
                         console.log(response5.data)
                         
@@ -62,6 +69,7 @@ const asyncApiCall = async () => {
             } else {
                 console.log('No holding found!!! id:' + currentid)
             }
+            
         }
         console.log('Script finished!')
     }
